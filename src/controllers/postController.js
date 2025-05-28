@@ -1,28 +1,31 @@
+//postController
 const pool = require('../config/db');
 
 const getAllPosts = async (req, res) => {
     try {
-        const { category } = req.query;
+        const { category_id } = req.query;
 
         let query = `
             SELECT posts.id, posts.title, posts.description, 
-                   posts.category, posts.created_at, users.username 
+                   posts.created_at, users.username,
+                   categories.id as category_id, categories.name as category_name
             FROM posts 
             JOIN users ON posts.user_id = users.id
+            JOIN categories ON posts.category_id = categories.id
         `;
 
         const params = [];
 
-        if (category) {
-            query += ' WHERE posts.category = ?';
-            params.push(category);
+        if (category_id) {
+            query += ' WHERE posts.category_id = ?';
+            params.push(category_id);
         }
 
         const [posts] = await pool.query(query, params);
         res.json(posts);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        console.error('Error in getAllPosts:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
 
@@ -44,29 +47,37 @@ const getPostById = async (req, res) => {
 
 const createPost = async (req, res) => {
     try {
-        const { title, description, category = 'other' } = req.body;
+        const { title, description, category_id } = req.body;
         const userId = req.user.id;
 
-        if (!title || !description) {
-            return res.status(400).json({ message: 'Title and description are required' });
+        if (!title || !description || !category_id) {
+            return res.status(400).json({
+                message: 'Title, description and category_id are required'
+            });
         }
 
-        // Проверяем допустимые категории
-        const allowedCategories = ['foreign', 'funny', 'politics', 'other'];
-        if (!allowedCategories.includes(category)) {
-            return res.status(400).json({ message: 'Invalid category' });
+        const [category] = await pool.query(
+            'SELECT id FROM categories WHERE id = ?',
+            [category_id]
+        );
+
+        if (!category.length) {
+            return res.status(400).json({ message: 'Category not found' });
         }
 
         const [result] = await pool.query(
-            'INSERT INTO posts (title, description, user_id, category) VALUES (?, ?, ?, ?)',
-            [title, description, userId, category]
+            'INSERT INTO posts (title, description, user_id, category_id) VALUES (?, ?, ?, ?)',
+            [title, description, userId, category_id]
         );
 
         const [newPost] = await pool.query(`
-            SELECT posts.id, posts.title, posts.description, 
-                   posts.category, posts.created_at, users.username 
-            FROM posts 
-            JOIN users ON posts.user_id = users.id
+            SELECT
+                posts.*,
+                users.username,
+                categories.name as category_name
+            FROM posts
+                     JOIN users ON posts.user_id = users.id
+                     JOIN categories ON posts.category_id = categories.id
             WHERE posts.id = ?
         `, [result.insertId]);
 
@@ -81,12 +92,10 @@ const updatePost = async (req, res) => {
     try {
         const { id } = req.params;
         const { title, description } = req.body;
-        const userId = req.user.id;
 
-        // Проверяем, существует ли пост и принадлежит ли пользователю
         const [posts] = await pool.query(
-            'SELECT * FROM posts WHERE id = ? AND user_id = ?',
-            [id, userId]
+            'SELECT * FROM posts WHERE id = ?',
+            [id]
         );
 
         if (posts.length === 0) {
@@ -115,7 +124,6 @@ const deletePost = async (req, res) => {
         const { id } = req.params;
         const userId = req.user.id;
 
-        // Проверяем, существует ли пост и принадлежит ли пользователю
         const [posts] = await pool.query(
             'SELECT * FROM posts WHERE id = ? AND user_id = ?',
             [id, userId]
@@ -136,24 +144,31 @@ const deletePost = async (req, res) => {
 
 const getPostsByCategory = async (req, res) => {
     try {
-        const { category } = req.params;
-
-        // Проверяем допустимые категории
-        const allowedCategories = ['foreign', 'funny', 'politics', 'other'];
-        if (!allowedCategories.includes(category)) {
-            return res.status(400).json({ message: 'Invalid category' });
-        }
+        const { category_id } = req.params;
 
         const [posts] = await pool.query(`
             SELECT posts.id, posts.title, posts.description, 
-                   posts.category, posts.created_at, users.username 
+                   posts.created_at, users.username,
+                   categories.id as category_id, categories.name as category_name
             FROM posts 
             JOIN users ON posts.user_id = users.id
-            WHERE posts.category = ?
+            JOIN categories ON posts.category_id = categories.id
+            WHERE posts.category_id = ?
             ORDER BY posts.created_at DESC
-        `, [category]);
+        `, [category_id]);
 
         res.json(posts);
+    } catch (error) {
+        console.error('Error in getPostsByCategory:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+
+const getAllCategories = async (req, res) => {
+    try {
+        const [categories] = await pool.query('SELECT * FROM categories');
+        res.json(categories);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
@@ -166,5 +181,6 @@ module.exports = {
     createPost,
     updatePost,
     deletePost,
-    getPostsByCategory
+    getPostsByCategory,
+    getAllCategories
 };

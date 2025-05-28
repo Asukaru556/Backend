@@ -1,3 +1,4 @@
+//postRoutes
 const express = require('express');
 const router = express.Router();
 const postController = require('../../controllers/postController');
@@ -7,7 +8,7 @@ router.get('/', postController.getAllPosts);
 
 router.get('/:id', postController.getPostById);
 
-router.get('/category/:category', postController.getPostsByCategory);
+router.get('/category/:category_id', postController.getPostsByCategory);
 
 router.post('/', authMiddleware, postController.createPost);
 
