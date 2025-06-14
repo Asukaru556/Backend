@@ -43,12 +43,12 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
     try {
-        const { username, password } = req.body;
+        const { email, password } = req.body;
 
         // Поиск пользователя
         const [users] = await pool.query(
-            'SELECT * FROM users WHERE username = ?',
-            [username]
+            'SELECT * FROM users WHERE email = ?',
+            [email]
         );
 
         if (users.length === 0) {

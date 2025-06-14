@@ -121,12 +121,6 @@ const deleteCategory = async (req, res) => {
             [id]
         );
 
-        if (posts.length > 0) {
-            return res.status(400).json({
-                message: 'Cannot delete category with existing posts'
-            });
-        }
-
         // Удаляем категорию
         await pool.query('DELETE FROM categories WHERE id = ?', [id]);
 
