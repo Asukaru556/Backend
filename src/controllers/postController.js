@@ -165,15 +165,7 @@ const getPostsByCategory = async (req, res) => {
 };
 
 
-const getAllCategories = async (req, res) => {
-    try {
-        const [categories] = await pool.query('SELECT * FROM categories');
-        res.json(categories);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
-    }
-};
+
 
 module.exports = {
     getAllPosts,
@@ -182,5 +174,4 @@ module.exports = {
     updatePost,
     deletePost,
     getPostsByCategory,
-    getAllCategories
 };

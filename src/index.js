@@ -8,7 +8,7 @@ const path = require('path');
 const multer = require('multer');
 const categoryRoutes = require('./v1/routes/categoryRoutes');
 const modelsRoutes = require('./v1/routes/modelRoutes');
-
+const authMiddleware = require('./midlleWare/authMidlleWare');
 const cors = require('cors');
 require('dotenv').config();
 
@@ -18,11 +18,11 @@ const PORT = 3000;
 app.use(cors());
 app.use(bodyParser.json());
 
-app.use('/api/v1/posts', postRoutes);
+app.use('/api/v1/posts', authMiddleware, postRoutes);
 app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/upload', uploadRoutes);
-app.use('/api/v1/upload', modelsRoutes);
-app.use('/api/v1/categories', categoryRoutes);
+app.use('/api/v1/upload',authMiddleware, uploadRoutes);
+app.use('/api/v1/upload',authMiddleware, modelsRoutes);
+app.use('/api/v1/categories',authMiddleware, categoryRoutes);
 
 // Маршрут для доступа к загруженным файлам
 const parentDir = path.join(__dirname, '..');
