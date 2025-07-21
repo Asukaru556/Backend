@@ -70,7 +70,7 @@ const login = async (req, res) => {
             { expiresIn: '1h' }
         );
 
-        res.json({ token, userId: user.id, username: user.username });
+        res.json({ token, userId: user.id, username: user.username, email: user.email});
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });

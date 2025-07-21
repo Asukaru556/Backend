@@ -9,7 +9,6 @@ const fs = require('fs');
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         const uploadDir = 'uploads/models/';
-        // Создаем папку, если ее нет
         if (!fs.existsSync(uploadDir)) {
             fs.mkdirSync(uploadDir, { recursive: true });
         }
@@ -22,40 +21,40 @@ const storage = multer.diskStorage({
     }
 });
 
-// Фильтр файлов (разрешаем только изображения)
+// Фильтр файлов
 const fileFilter = (req, file, cb) => {
-    const allowedTypes = ['model/bgl'];
+    console.log('Тип файла:', file.mimetype);
+    const allowedTypes = ['model/gltf-binary', 'application/octet-stream'];
     if (allowedTypes.includes(file.mimetype)) {
         cb(null, true);
     } else {
-        cb(new Error('Недопустимый тип файла. Разрешены только модели.'), false);
+        cb(new Error('Недопустимый тип файла. Разрешены только .glb модели.'), false);
     }
 };
 
 const upload = multer({
     storage: storage,
     fileFilter: fileFilter,
-    limits: { fileSize: 1024 * 1024 * 50 }
+    limits: { fileSize: 1024 * 1024 * 50 } // 50MB
 });
 
-// Маршрут для загрузки изображения
-router.post('/models', authMiddleware, upload.single('image'), (req, res) => {
+// Маршрут для загрузки модели
+router.post('/models', authMiddleware, upload.single('model'), (req, res) => {
     try {
         if (!req.file) {
+            console.warn('Файл не был получен');
             return res.status(400).json({ error: 'Модель не была загружена' });
         }
 
-        // Формируем URL для доступа к изображению
-        const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
-
+        const modelUrl = `${req.protocol}://${req.get('host')}/uploads/models/${req.file.filename}`;
 
         res.status(201).json({
-            message: 'Пост успешно создан',
-            imageUrl: imageUrl
+            message: 'Модель успешно загружена',
+            modelUrl: modelUrl
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Ошибка при создании поста' });
+        console.error('Ошибка при загрузке модели:', error);
+        res.status(500).json({ error: 'Ошибка при загрузке модели' });
     }
 });
 

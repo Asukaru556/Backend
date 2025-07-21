@@ -46,7 +46,7 @@ router.post('/images', authMiddleware, upload.single('image'), (req, res) => {
         }
 
         // Формируем URL для доступа к изображению
-        const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+        const imageUrl = `${req.protocol}://${req.get('host')}/uploads/images/${req.file.filename}`;
 
 
         res.status(201).json({
