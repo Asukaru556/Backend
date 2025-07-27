@@ -18,7 +18,6 @@ const createCategory = async (req, res) => {
             return res.status(400).json({ message: 'Category name is required' });
         }
 
-        // Проверка существования категории
         const [existing] = await pool.query(
             'SELECT id FROM categories WHERE name = ?',
             [name]
@@ -28,13 +27,11 @@ const createCategory = async (req, res) => {
             return res.status(409).json({ message: 'Category already exists' });
         }
 
-        // Создание новой категории (только поле name)
         const [result] = await pool.query(
             'INSERT INTO categories (name) VALUES (?)',
             [name]
         );
 
-        // Получение созданной категории (только id и name)
         const [newCategory] = await pool.query(
             'SELECT id, name FROM categories WHERE id = ?',
             [result.insertId]
@@ -59,7 +56,6 @@ const updateCategory = async (req, res) => {
             return res.status(400).json({ message: 'Category name is required' });
         }
 
-        // Проверяем существование категории
         const [category] = await pool.query(
             'SELECT id FROM categories WHERE id = ?',
             [id]
@@ -69,7 +65,6 @@ const updateCategory = async (req, res) => {
             return res.status(404).json({ message: 'Category not found' });
         }
 
-        // Проверяем уникальность нового имени
         const [existing] = await pool.query(
             'SELECT id FROM categories WHERE name = ? AND id != ?',
             [name, id]
@@ -79,13 +74,11 @@ const updateCategory = async (req, res) => {
             return res.status(409).json({ message: 'Category name already exists' });
         }
 
-        // Обновляем категорию
         await pool.query(
             'UPDATE categories SET name = ? WHERE id = ?',
             [name, id]
         );
 
-        // Возвращаем обновленную категорию
         const [updatedCategory] = await pool.query(
             'SELECT id, name FROM categories WHERE id = ?',
             [id]
@@ -105,7 +98,6 @@ const deleteCategory = async (req, res) => {
     try {
         const { id } = req.params;
 
-        // Проверяем существование категории
         const [category] = await pool.query(
             'SELECT id FROM categories WHERE id = ?',
             [id]
@@ -115,13 +107,11 @@ const deleteCategory = async (req, res) => {
             return res.status(404).json({ message: 'Category not found' });
         }
 
-        // Проверяем, есть ли посты в этой категории
         const [posts] = await pool.query(
             'SELECT id FROM posts WHERE category_id = ?',
             [id]
         );
 
-        // Удаляем категорию
         await pool.query('DELETE FROM categories WHERE id = ?', [id]);
 
         res.json({ message: 'Category deleted successfully' });

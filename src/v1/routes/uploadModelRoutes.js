@@ -38,7 +38,6 @@ const upload = multer({
     limits: { fileSize: 1024 * 1024 * 50 } // 50MB
 });
 
-// Маршрут для загрузки модели
 router.post('/models', authMiddleware, upload.single('model'), (req, res) => {
     try {
         if (!req.file) {

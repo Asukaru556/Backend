@@ -9,7 +9,7 @@ const fs = require('fs');
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         const uploadDir = 'uploads/images/';
-        // Создаем папку, если ее нет
+
         if (!fs.existsSync(uploadDir)) {
             fs.mkdirSync(uploadDir, { recursive: true });
         }
@@ -22,7 +22,6 @@ const storage = multer.diskStorage({
     }
 });
 
-// Фильтр файлов (разрешаем только изображения)
 const fileFilter = (req, file, cb) => {
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
     if (allowedTypes.includes(file.mimetype)) {
@@ -35,17 +34,15 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
     storage: storage,
     fileFilter: fileFilter,
-    limits: { fileSize: 1024 * 1024 * 5 } // Ограничение 5MB
+    limits: { fileSize: 1024 * 1024 * 5 }
 });
 
-// Маршрут для загрузки изображения
 router.post('/images', authMiddleware, upload.single('image'), (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'Изображение не было загружено' });
         }
 
-        // Формируем URL для доступа к изображению
         const imageUrl = `${req.protocol}://${req.get('host')}/uploads/images/${req.file.filename}`;
 
 

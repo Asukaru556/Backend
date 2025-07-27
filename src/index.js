@@ -31,11 +31,9 @@ app.use('/api/v1/upload/', uploadModelRoutes);
 app.use('/api/v1/categories', categoryRoutes);
 app.use('/api/v1/models', modelRoutes)
 
-// Маршрут для доступа к загруженным файлам
 const parentDir = path.join(__dirname, '..');
 app.use('/uploads', express.static(path.join(parentDir, 'uploads')));
 
-// Обработка ошибок Multer
 app.use((err, req, res, next) => {
     if (err instanceof multer.MulterError) {
         return res.status(400).json({ error: err.message });
@@ -45,7 +43,6 @@ app.use((err, req, res, next) => {
     next();
 });
 
-// Error handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).send('Something broke!');

@@ -9,7 +9,7 @@ function formatModel(model) {
         model_path: model.model_path || null,
         price: model.price !== undefined ? model.price : null,
         direct_purchase_url: model.direct_purchase_url || '',
-        category_id: model.category_id || null,  // Добавлено поле category_id
+        category_id: model.category_id || null,
         tempImage: null,
         tempModel: null,
     };
@@ -56,7 +56,7 @@ const createModel = async (req, res) => {
             model_path,
             price,
             direct_purchase_url,
-            category_id,          // Добавляем сюда category_id
+            category_id,
         } = req.body;
 
         if (!title || !model_path) {
@@ -97,7 +97,7 @@ const updateModel = async (req, res) => {
             model_path,
             price,
             direct_purchase_url,
-            category_id,           // Добавляем сюда category_id
+            category_id,
         } = req.body;
 
         const [existingModels] = await pool.query('SELECT * FROM models WHERE id = ?', [id]);
