@@ -18,7 +18,7 @@ const app = express();
 const PORT = 3000;
 
 app.use(cors({
-    origin: 'http://localhost:9000',
+    origin: 'http://localhost:9001',
     credentials: true
 }));
 
@@ -43,7 +43,7 @@ app.use((err, req, res, next) => {
     next();
 });
 
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
     console.error(err.stack);
     res.status(500).send('Something broke!');
 });

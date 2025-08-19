@@ -3,6 +3,27 @@ const jwt = require('jsonwebtoken');
 const pool = require('../config/db');
 require('dotenv').config();
 
+const initializeUsersTable = async () => {
+    try {
+        const createTableQuery = `
+            CREATE TABLE IF NOT EXISTS users (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                email VARCHAR(100) NOT NULL UNIQUE,
+                password VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `;
+
+        await pool.query(createTableQuery);
+        console.log('Users table initialized successfully');
+    } catch (error) {
+        console.error('Error initializing users table:', error);
+        throw error;
+    }
+};
+
+initializeUsersTable().catch(console.error);
+
 const register = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -63,7 +84,7 @@ const login = async (req, res) => {
             { expiresIn: '1h' }
         );
 
-        res.json({ token, userId: user.id, username: user.username, email: user.email});
+        res.json({ token, userId: user.id, email: user.email});
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
@@ -76,7 +97,6 @@ const getUser = async (req, res) => {
 
         const userData = {
             id: user.id,
-            username: user.username,
             email: user.email,
             created_at: user.created_at
         };
