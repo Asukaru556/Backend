@@ -7,5 +7,6 @@ router.get('/:id', modelController.getModelById);
 router.post('/', modelController.createModel);
 router.put('/:id', modelController.updateModel);
 router.delete('/:id', modelController.deleteModel);
+router.patch('/positions', modelController.updateModelsPositions);
 
 module.exports = router;

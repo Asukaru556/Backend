@@ -11,6 +11,8 @@ function formatModel(model) {
         direct_purchase_url: model.direct_purchase_url || '',
         category_id: model.category_id || null,
         is_active: Boolean(model.is_active),
+        is_stock: Boolean(model.is_stock),
+        position: model.position !== undefined ? model.position : 0,
         tempImage: null,
         tempModel: null,
     };
@@ -29,6 +31,8 @@ const initializeModelsTable = async () => {
                 direct_purchase_url VARCHAR(255),
                 category_id INT,
                 is_active TINYINT(1) DEFAULT 1,
+                is_stock TINYINT(1) DEFAULT 0,
+                position INT DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
@@ -47,7 +51,7 @@ initializeModelsTable().catch(console.error);
 
 const getAllModels = async (req, res) => {
     try {
-        const [models] = await pool.query('SELECT * FROM models');
+        const [models] = await pool.query('SELECT * FROM models ORDER BY position ASC, id DESC');
         const formattedModels = models.map(formatModel);
         res.status(200).json(formattedModels);
     } catch (error) {
@@ -87,7 +91,9 @@ const createModel = async (req, res) => {
             price,
             direct_purchase_url,
             category_id,
-            is_active
+            is_active,
+            is_stock,
+            position
         } = req.body;
 
         if (!title || !model_path) {
@@ -101,9 +107,9 @@ const createModel = async (req, res) => {
 
         const [result] = await pool.query(
             `INSERT INTO models
-             (title, description, image_path, model_path, price, direct_purchase_url, category_id, is_active)
-             VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [title, description, image_path, model_path, price, direct_purchase_url, category_id, is_active ?? true]
+             (title, description, image_path, model_path, price, direct_purchase_url, category_id, is_active, is_stock, position )
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [title, description, image_path, model_path, price, direct_purchase_url, category_id, is_active ?? true, is_stock ?? false, position ?? 0]
         );
 
         const [newModels] = await pool.query('SELECT * FROM models WHERE id = ?', [result.insertId]);
@@ -129,7 +135,9 @@ const updateModel = async (req, res) => {
             price,
             direct_purchase_url,
             category_id,
-            is_active
+            is_active,
+            is_stock,
+            position
         } = req.body;
 
         const [existingModels] = await pool.query('SELECT * FROM models WHERE id = ?', [id]);
@@ -157,6 +165,8 @@ const updateModel = async (req, res) => {
             direct_purchase_url: direct_purchase_url || existingModel.direct_purchase_url,
             category_id: category_id !== undefined ? category_id : existingModel.category_id,
             is_active: is_active !== undefined ? is_active : existingModel.is_active,
+            is_stock: is_stock !== undefined ? is_stock : existingModel.is_stock,
+            position: position !== undefined ? position : existingModel.position,
         };
 
         await pool.query(
@@ -168,7 +178,9 @@ const updateModel = async (req, res) => {
                 price = ?,
                 direct_purchase_url = ?,
                 category_id = ?,
-                is_active = ?
+                is_active = ?,
+                is_stock = ?,
+                position = ?
              WHERE id = ?`,
             [
                 updateData.title,
@@ -179,6 +191,8 @@ const updateModel = async (req, res) => {
                 updateData.direct_purchase_url,
                 updateData.category_id,
                 updateData.is_active,
+                updateData.is_stock,
+                updateData.position,
                 id,
             ]
         );
@@ -213,10 +227,53 @@ const deleteModel = async (req, res) => {
     }
 };
 
+const updateModelsPositions = async (req, res) => {
+    let connection;
+    try {
+        const { models: modelsToUpdate } = req.body;
+
+        if (!Array.isArray(modelsToUpdate)) {
+            return res.status(400).json({ message: 'Invalid data format' });
+        }
+
+        connection = await pool.getConnection();
+
+        await connection.beginTransaction();
+
+        for (const model of modelsToUpdate) {
+            await connection.query(
+                'UPDATE models SET position = ? WHERE id = ?',
+                [model.position, model.id]
+            );
+        }
+
+        await connection.commit();
+        res.status(200).json({ message: 'Positions updated successfully' });
+
+    } catch (error) {
+        if (connection) {
+            await connection.rollback();
+        }
+        console.error('Error in updateModelsPositions:', error);
+        res.status(500).json({
+            message: 'Server error',
+            error: error.message,
+        });
+    } finally {
+        // Всегда освобождаем соединение
+        if (connection) {
+            connection.release();
+        }
+    }
+};
+
+
+
 module.exports = {
     getAllModels,
     getModelById,
     createModel,
     updateModel,
     deleteModel,
+    updateModelsPositions,
 };
