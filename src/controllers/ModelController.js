@@ -13,6 +13,7 @@ function formatModel(model) {
         is_active: Boolean(model.is_active),
         is_stock: Boolean(model.is_stock),
         position: model.position !== undefined ? model.position : 0,
+        button_name: model.button_name || '',
         tempImage: null,
         tempModel: null,
     };
@@ -33,6 +34,7 @@ const initializeModelsTable = async () => {
                 is_active TINYINT(1) DEFAULT 1,
                 is_stock TINYINT(1) DEFAULT 0,
                 position INT DEFAULT 0,
+                button_name VARCHAR(100),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
@@ -93,7 +95,8 @@ const createModel = async (req, res) => {
             category_id,
             is_active,
             is_stock,
-            position
+            position,
+            button_name
         } = req.body;
 
         if (!title || !model_path) {
@@ -107,9 +110,9 @@ const createModel = async (req, res) => {
 
         const [result] = await pool.query(
             `INSERT INTO models
-             (title, description, image_path, model_path, price, direct_purchase_url, category_id, is_active, is_stock, position )
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [title, description, image_path, model_path, price, direct_purchase_url, category_id, is_active ?? true, is_stock ?? false, position ?? 0]
+             (title, description, image_path, model_path, price, direct_purchase_url, category_id, is_active, is_stock, position, button_name)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [title, description, image_path, model_path, price, direct_purchase_url, category_id, is_active ?? true, is_stock ?? false, position ?? 0, button_name || '']
         );
 
         const [newModels] = await pool.query('SELECT * FROM models WHERE id = ?', [result.insertId]);
@@ -137,7 +140,8 @@ const updateModel = async (req, res) => {
             category_id,
             is_active,
             is_stock,
-            position
+            position,
+            button_name
         } = req.body;
 
         const [existingModels] = await pool.query('SELECT * FROM models WHERE id = ?', [id]);
@@ -167,6 +171,7 @@ const updateModel = async (req, res) => {
             is_active: is_active !== undefined ? is_active : existingModel.is_active,
             is_stock: is_stock !== undefined ? is_stock : existingModel.is_stock,
             position: position !== undefined ? position : existingModel.position,
+            button_name: button_name !== undefined ? button_name : existingModel.button_name,
         };
 
         await pool.query(
@@ -180,7 +185,8 @@ const updateModel = async (req, res) => {
                 category_id = ?,
                 is_active = ?,
                 is_stock = ?,
-                position = ?
+                position = ?,
+                button_name = ?
              WHERE id = ?`,
             [
                 updateData.title,
@@ -193,6 +199,7 @@ const updateModel = async (req, res) => {
                 updateData.is_active,
                 updateData.is_stock,
                 updateData.position,
+                updateData.button_name,
                 id,
             ]
         );
@@ -260,7 +267,6 @@ const updateModelsPositions = async (req, res) => {
             error: error.message,
         });
     } finally {
-        // Всегда освобождаем соединение
         if (connection) {
             connection.release();
         }

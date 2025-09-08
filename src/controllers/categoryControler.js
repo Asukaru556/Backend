@@ -126,10 +126,16 @@ const deleteCategory = async (req, res) => {
             return res.status(404).json({ message: 'Category not found' });
         }
 
-        const [posts] = await pool.query(
-            'SELECT id FROM posts WHERE category_id = ?',
+        const [models] = await pool.query(
+            'SELECT id FROM models WHERE category_id = ?',
             [id]
         );
+
+        if (models.length > 0) {
+            return res.status(409).json({
+                message: 'Cannot delete category: it has associated models'
+            });
+        }
 
         await pool.query('DELETE FROM categories WHERE id = ?', [id]);
 
@@ -147,7 +153,6 @@ const getCategoryById = async (req, res) => {
     try {
         const { id } = req.params;
 
-        // Получаем категорию по ID
         const [categories] = await pool.query(
             'SELECT id, name FROM categories WHERE id = ?',
             [id]
