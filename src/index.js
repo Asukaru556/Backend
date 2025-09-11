@@ -7,7 +7,6 @@ const cors = require('cors');
 require('dotenv').config();
 
 const authRoutes = require('./v1/routes/authRoutes');
-const postRoutes = require('./v1/routes/postRoutes');
 const uploadImageRoutes = require('./v1/routes/uploadImageRoutes');
 const categoryRoutes = require('./v1/routes/categoryRoutes');
 const uploadModelRoutes = require('./v1/routes/uploadModelRoutes');
@@ -24,7 +23,6 @@ app.use(cors({
 
 app.use(bodyParser.json());
 
-app.use('/api/v1/posts', postRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/upload/', uploadImageRoutes);
 app.use('/api/v1/upload/', uploadModelRoutes);
