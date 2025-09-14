@@ -1,24 +1,5 @@
 const pool = require('../config/db');
 
-const initializeCategoriesTable = async () => {
-    try {
-        const createTableQuery = `
-            CREATE TABLE IF NOT EXISTS categories (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                name VARCHAR(100) NOT NULL UNIQUE
-            )
-        `;
-
-        await pool.query(createTableQuery);
-        console.log('Categories table initialized successfully');
-    } catch (error) {
-        console.error('Error initializing categories table:', error);
-        throw error;
-    }
-};
-
-initializeCategoriesTable().catch(console.error);
-
 const getAllCategories = async (req, res) => {
     try {
         const [categories] = await pool.query('SELECT * FROM categories');

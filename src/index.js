@@ -11,13 +11,14 @@ const uploadImageRoutes = require('./v1/routes/uploadImageRoutes');
 const categoryRoutes = require('./v1/routes/categoryRoutes');
 const uploadModelRoutes = require('./v1/routes/uploadModelRoutes');
 const modelRoutes = require('./v1/routes/ModelRoutes');
-require('dotenv').config();
 
 const app = express();
 const PORT = 3000;
 
+require('./controllers/allTablesInit')
+
 app.use(cors({
-    origin: 'http://localhost:9000',
+    origin: 'http://localhost:9001',
     credentials: true
 }));
 
