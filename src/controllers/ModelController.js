@@ -19,6 +19,7 @@ function formatModel(model) {
     };
 }
 
+
 const getAllModels = async (req, res) => {
     try {
         const [models] = await pool.query('SELECT * FROM models ORDER BY position ASC, id DESC');
@@ -71,10 +72,10 @@ const createModel = async (req, res) => {
             return res.status(400).json({ message: 'Title and model file are required' });
         }
 
-        const [existing] = await pool.query('SELECT id FROM models WHERE title = ?', [title]);
-        if (existing.length > 0) {
-            return res.status(409).json({ message: 'Model with this title already exists' });
-        }
+        // const [existing] = await pool.query('SELECT id FROM models WHERE title = ?', [title]);
+        // if (existing.length > 0) {
+        //     return res.status(409).json({ message: 'Model with this title already exists' });
+        // }
 
         const [result] = await pool.query(
             `INSERT INTO models
@@ -118,15 +119,15 @@ const updateModel = async (req, res) => {
         }
         const existingModel = existingModels[0];
 
-        if (title) {
-            const [existingTitle] = await pool.query(
-                'SELECT id FROM models WHERE title = ? AND id != ?',
-                [title, id]
-            );
-            if (existingTitle.length > 0) {
-                return res.status(409).json({ message: 'Model with this title already exists' });
-            }
-        }
+        // if (title) {
+        //     const [existingTitle] = await pool.query(
+        //         'SELECT id FROM models WHERE title = ? AND id != ?',
+        //         [title, id]
+        //     );
+        //     if (existingTitle.length > 0) {
+        //         return res.status(409).json({ message: 'Model with this title already exists' });
+        //     }
+        // }
 
         const updateData = {
             title: title || existingModel.title,
