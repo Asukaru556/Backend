@@ -18,7 +18,7 @@ const PORT = 3000;
 require('./controllers/allTablesInit')
 
 app.use(cors({
-    origin: 'http://localhost:9001',
+    origin: 'http://localhost:9000',
     credentials: true
 }));
 
